@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment / secrets
+.env
+.env.*
+.streamlit/secrets.toml
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Claude Code local settings (user-specific permissions etc.)
+.claude/
+
+# === HIDAKARAanalytics 固有 ===
+
+# 本番データ（コミット禁止）
+data/warehouse.duckdb
+data/warehouse.duckdb.wal
+data/test_*.duckdb
+data/test_*.duckdb.wal
+
+# 受領した生 CSV（個人情報・寄付データを含む可能性、コミット禁止）
+data/raw/**
+!data/raw/.gitkeep
+
+# 出力レポート（再生成可能、コミット不要）
+data/reports/*.xlsx
+data/reports/*.pdf
+!data/reports/.gitkeep
+
+# パッケージング出力（デスクトップに作るので通常はここに来ないがフェイルセーフ）
+HIDAKARAanalytics_*.zip

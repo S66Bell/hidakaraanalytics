@@ -1,13 +1,18 @@
-# HIDAKARAanalytics 社内サーバー起動スクリプト
+﻿# HIDAKARAanalytics 社内サーバー起動スクリプト
 # 使い方:
-#   1. PowerShell を開く
-#   2. このスクリプトのあるフォルダで:
-#        .\start_server.ps1
-#   3. 同じLAN内の他のPCから http://<このPCのIP>:8501 でアクセス
+#   1. PowerShell で `.\start_server.ps1` を実行
+#      または start_server.bat をダブルクリック
+#   2. 同じLAN内の他のPCから http://<このPCのIP>:8501 でアクセス
 
 $ErrorActionPreference = "Stop"
-$projectRoot = $PSScriptRoot
-Set-Location $projectRoot
+
+# $PSScriptRoot が空のときのフォールバック（dot-source や ISE 経由など）
+if ($PSScriptRoot) {
+    $projectRoot = $PSScriptRoot
+} else {
+    $projectRoot = (Get-Location).Path
+}
+Set-Location -LiteralPath $projectRoot
 
 # 現在のPCのLAN IPアドレスを表示
 Write-Host "=== このPCのLAN IPアドレス ===" -ForegroundColor Cyan
@@ -17,20 +22,30 @@ Get-NetIPAddress -AddressFamily IPv4 |
     Format-Table -AutoSize
 
 Write-Host ""
-Write-Host "同じLAN内のPCからは以下のようなURLでアクセス可能:" -ForegroundColor Yellow
+Write-Host "同じLAN内のPCからは以下のURLでアクセス可能:" -ForegroundColor Yellow
 Write-Host "  http://<上のIPアドレス>:8501"
 Write-Host ""
 
-# 仮想環境のStreamlitを起動
-$streamlit = Join-Path $projectRoot ".venv\Scripts\streamlit.exe"
-if (-not (Test-Path $streamlit)) {
+# 仮想環境の Streamlit パス（Join-Path を避け、文字列連結で安全に組み立て）
+$streamlit = "$projectRoot\.venv\Scripts\streamlit.exe"
+$appPy     = "$projectRoot\app.py"
+
+if (-not (Test-Path -LiteralPath $streamlit)) {
     Write-Host "ERROR: 仮想環境が見つかりません: $streamlit" -ForegroundColor Red
-    Write-Host "セットアップ: python -m venv .venv; .venv\Scripts\pip.exe install -r requirements.txt" -ForegroundColor Red
+    Write-Host "セットアップ手順:" -ForegroundColor Red
+    Write-Host "  python -m venv .venv" -ForegroundColor Red
+    Write-Host "  .venv\Scripts\pip install --upgrade pip" -ForegroundColor Red
+    Write-Host "  .venv\Scripts\pip install -r requirements.txt" -ForegroundColor Red
+    exit 1
+}
+
+if (-not (Test-Path -LiteralPath $appPy)) {
+    Write-Host "ERROR: app.py が見つかりません: $appPy" -ForegroundColor Red
     exit 1
 }
 
 Write-Host "HIDAKARAanalytics を起動します（停止するには Ctrl+C）..." -ForegroundColor Green
-& $streamlit run "$projectRoot\app.py" `
+& $streamlit run $appPy `
     --server.address 0.0.0.0 `
     --server.port 8501 `
     --server.headless true `

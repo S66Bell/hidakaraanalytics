@@ -10,7 +10,7 @@ Write-Host "Project root: $projectRoot"
 Write-Host "Staging dir : $stage"
 Write-Host ""
 
-$running = Get-Process | Where-Object { $_.ProcessName -eq 'python' -and $_.Path -like "*motosuanalytics*" }
+$running = Get-Process | Where-Object { $_.ProcessName -eq 'python' -and ($_.Path -like "*motosuanalytics*" -or $_.Path -like "*HIDAKARAanalytics*") }
 if ($running) {
     Write-Host "WARNING: Streamlit appears to be running. Stop it first." -ForegroundColor Yellow
     $resp = Read-Host "Continue anyway? (y/N)"

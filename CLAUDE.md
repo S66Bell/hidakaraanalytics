@@ -7,8 +7,11 @@
 ## プロジェクト概要
 
 - **名称（UI 表示）**: HIDAKARAanalytics
-- **フォルダ名（変更不可）**: `C:\Users\info\motosuanalytics`
-  - `.venv` が絶対パスに依存しているため、フォルダリネームは原則 NG
+- **設置場所**:
+  - 開発機（旧）: `C:\Users\info\motosuanalytics`
+  - 社内サーバー機（新）: `C:\Users\info\HIDAKARAanalytics_v2`
+  - 既存の `.venv` は絶対パス埋め込みなので、`.venv` ごと別場所に移動・リネームは NG
+  - 別 PC・別場所に展開する場合は **`.venv` を作り直す**（`python -m venv .venv` → `pip install -r requirements.txt`）
 - **目的**: ふるさと納税の日次データ（寄附情報CSV + 配送情報CSV）を **複数自治体まとめて** 蓄積し、経営層向けレポートと事業者別レポートを発行するダッシュボード
 - **想定ユーザー**: 自治体運営側の社員（複数人が日次でデータ取込）、経営層、事業者
 - **稼働形態**: ローカル PC → 将来 社内 LAN サーバー（古い PC 1 台 + Cloudflare Tunnel + Cloudflare Access 想定、完全無料運用）
@@ -41,21 +44,23 @@
 - **openpyxl** — Excel 出力（グラフ埋込み対応）
 - **matplotlib** — PDF 用チャート生成（日本語対応）
 
-仮想環境: `C:\Users\info\motosuanalytics\.venv`
+仮想環境: 各設置場所の `.venv\` 配下
+- 開発機: `C:\Users\info\motosuanalytics\.venv`
+- 社内サーバー機: `C:\Users\info\HIDAKARAanalytics_v2\.venv`
 
 ---
 
 ## ディレクトリ構成
 
 ```
-motosuanalytics/
+motosuanalytics/  (旧開発機)  または  HIDAKARAanalytics_v2/  (新サーバー機)
 ├── CLAUDE.md                   ← このファイル
 ├── README.md
 ├── app.py                      ← Streamlit エントリポイント
 ├── requirements.txt
 ├── start_server.bat            ← サーバー起動用（ダブルクリック）
 ├── start_server.ps1
-├── .venv/                      ← 仮想環境（リネーム禁止）
+├── .venv/                      ← 仮想環境（各 PC で個別に作成、移動禁止）
 ├── data/
 │   ├── raw/                    ← 受領した生 CSV のバックアップ
 │   ├── warehouse.duckdb        ← 集約 DB
@@ -199,7 +204,7 @@ import_logs         id(PK), municipality_id, file_name, file_type, rows_inserted
 ### 5. DB ロックと Streamlit
 - DuckDB は同時に 1 接続しか書込めない → Streamlit が動いている間は別プロセスから DB を変更できない
 - スキーマ変更や手作業マイグレーションが必要な時は Streamlit を停止してから実行
-- 停止コマンド: `Get-Process | Where-Object { $_.ProcessName -eq 'python' -and $_.Path -like "*motosuanalytics*" } | Stop-Process -Force`
+- 停止コマンド: `Get-Process | Where-Object { $_.ProcessName -eq 'python' -and ($_.Path -like "*motosuanalytics*" -or $_.Path -like "*HIDAKARAanalytics*") } | Stop-Process -Force`
 
 ### 6. 自治体ごとの集計
 - 同じ事業者が複数自治体に供給するケースがある（要 `vendor_aliases` テーブルで同一視）

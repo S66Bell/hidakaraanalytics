@@ -9,10 +9,17 @@ $ErrorActionPreference = "Stop"
 # $PSScriptRoot が空のときのフォールバック（dot-source や ISE 経由など）
 if ($PSScriptRoot) {
     $projectRoot = $PSScriptRoot
+} elseif ($MyInvocation.MyCommand.Path) {
+    $projectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 } else {
     $projectRoot = (Get-Location).Path
 }
+if (-not $projectRoot) {
+    Write-Host "ERROR: プロジェクトルートを特定できません。PowerShell で 'cd <project>' してから .\start_server.ps1 を実行してください。" -ForegroundColor Red
+    exit 1
+}
 Set-Location -LiteralPath $projectRoot
+Write-Host "Project root: $projectRoot" -ForegroundColor DarkGray
 
 # 現在のPCのLAN IPアドレスを表示
 Write-Host "=== このPCのLAN IPアドレス ===" -ForegroundColor Cyan

@@ -79,7 +79,7 @@ def _side_by_side_kpis(
         c2.metric("件数", format_count(a_ord), delta=_kpi_diff_only(a_ord, b_ord))
         c3, c4 = st.columns(2)
         c3.metric("謝礼品価格", format_yen(a_cost), delta=_kpi_diff_only(a_cost, b_cost))
-        c4.metric("経費率", format_pct(a_exp), delta=_kpi_diff_only(a_exp, b_exp, is_pct=True))
+        c4.metric("返礼率", format_pct(a_exp), delta=_kpi_diff_only(a_exp, b_exp, is_pct=True))
 
     with col_b:
         st.markdown(f"### 🏛️ {b_name}")
@@ -88,7 +88,7 @@ def _side_by_side_kpis(
         c2.metric("件数", format_count(b_ord))
         c3, c4 = st.columns(2)
         c3.metric("謝礼品価格", format_yen(b_cost))
-        c4.metric("経費率", format_pct(b_exp))
+        c4.metric("返礼率", format_pct(b_exp))
 
 
 def _muni_kpi_dict(conn, muni_id, start, end) -> dict:
@@ -396,7 +396,7 @@ def _all_munis_section(conn, start, end) -> None:
             "orders": "件数",
             "revenue": "寄付金額",
             "total_cost": "謝礼品価格",
-            "expense_ratio": "経費率",
+            "expense_ratio": "返礼率",
             "product_count": "取扱商品数",
             "vendor_count": "取扱事業者数",
         }
@@ -404,11 +404,11 @@ def _all_munis_section(conn, start, end) -> None:
     display["件数"] = display["件数"].map(format_int)
     display["寄付金額"] = display["寄付金額"].map(format_yen)
     display["謝礼品価格"] = display["謝礼品価格"].map(format_yen)
-    display["経費率"] = display["経費率"].map(format_pct)
+    display["返礼率"] = display["返礼率"].map(format_pct)
     display["取扱商品数"] = display["取扱商品数"].map(format_int)
     display["取扱事業者数"] = display["取扱事業者数"].map(format_int)
     st.dataframe(
-        display[["自治体", "件数", "寄付金額", "謝礼品価格", "経費率", "取扱商品数", "取扱事業者数"]],
+        display[["自治体", "件数", "寄付金額", "謝礼品価格", "返礼率", "取扱商品数", "取扱事業者数"]],
         use_container_width=True,
         hide_index=True,
     )

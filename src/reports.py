@@ -174,7 +174,7 @@ def build_monthly_excel(
             {"指標": "寄付金額", "値": _format_yen(revenue)},
             {"指標": "件数", "値": f"{orders:,} 件"},
             {"指標": "謝礼品価格", "値": _format_yen(total_cost)},
-            {"指標": "経費率", "値": _format_pct(expense_ratio)},
+            {"指標": "返礼率", "値": _format_pct(expense_ratio)},
         ]
     )
     _write_table(ws, kpi_df, start_row=5)
@@ -197,7 +197,7 @@ def build_monthly_excel(
                 "orders": "件数",
                 "revenue": "寄付金額",
                 "total_cost": "謝礼品価格",
-                "expense_ratio": "経費率",
+                "expense_ratio": "返礼率",
                 "avg_order_value": "平均単価",
             }
         )
@@ -228,7 +228,7 @@ def build_monthly_excel(
                 "orders": "件数",
                 "revenue": "寄付金額",
                 "total_cost": "謝礼品価格",
-                "expense_ratio": "経費率",
+                "expense_ratio": "返礼率",
                 "share": "寄付金額シェア",
             }
         )
@@ -246,7 +246,7 @@ def build_monthly_excel(
                 "product_count": "取扱商品数",
                 "revenue": "寄付金額",
                 "total_cost": "謝礼品価格",
-                "expense_ratio": "経費率",
+                "expense_ratio": "返礼率",
                 "avg_order_value": "平均単価",
             }
         )
@@ -263,7 +263,7 @@ def build_monthly_excel(
                 "orders": "件数",
                 "revenue": "寄付金額",
                 "total_cost": "謝礼品価格",
-                "expense_ratio": "経費率",
+                "expense_ratio": "返礼率",
                 "share": "寄付金額シェア",
             }
         )
@@ -403,7 +403,7 @@ def build_monthly_pdf(
 
     kpi_df = pd.DataFrame(
         {
-            "指標": ["寄付金額", "件数", "謝礼品価格", "経費率"],
+            "指標": ["寄付金額", "件数", "謝礼品価格", "返礼率"],
             "値": [_format_yen(revenue), f"{orders:,} 件", _format_yen(total_cost), _format_pct(expense_ratio)],
         }
     )
@@ -444,7 +444,7 @@ def build_monthly_pdf(
                 "件数": d["orders"].map(format_int),
                 "寄付金額": d["revenue"].map(_format_yen),
                 "謝礼品価格": d["total_cost"].map(_format_yen),
-                "経費率": d["expense_ratio"].map(_format_pct),
+                "返礼率": d["expense_ratio"].map(_format_pct),
                 "シェア": d["share"].map(_format_pct),
             }
         )
@@ -463,7 +463,7 @@ def build_monthly_pdf(
                 "件数": d["orders"].map(format_int),
                 "寄付金額": d["revenue"].map(_format_yen),
                 "謝礼品価格": d["total_cost"].map(_format_yen),
-                "経費率": d["expense_ratio"].map(_format_pct),
+                "返礼率": d["expense_ratio"].map(_format_pct),
             }
         )
         story.append(_df_to_table(out, font_name, col_widths=[60 * mm, 18 * mm, 35 * mm, 35 * mm, 22 * mm]))
@@ -480,7 +480,7 @@ def build_monthly_pdf(
                 "件数": d["orders"].map(format_int),
                 "寄付金額": d["revenue"].map(_format_yen),
                 "謝礼品価格": d["total_cost"].map(_format_yen),
-                "経費率": d["expense_ratio"].map(_format_pct),
+                "返礼率": d["expense_ratio"].map(_format_pct),
                 "シェア": d["share"].map(_format_pct),
             }
         )
@@ -533,7 +533,7 @@ def build_vendor_pdf(
     # --- KPI ---
     kpi_df = pd.DataFrame(
         {
-            "指標": ["寄付金額", "件数", "謝礼品価格", "経費率", "取扱商品数"],
+            "指標": ["寄付金額", "件数", "謝礼品価格", "返礼率", "取扱商品数"],
             "値": [
                 _format_yen(kpi.revenue),
                 f"{kpi.orders:,} 件",
@@ -609,7 +609,7 @@ def build_vendor_pdf(
                 "件数": d["orders"].map(format_int),
                 "寄付金額": d["revenue"].map(_format_yen),
                 "謝礼品価格": d["total_cost"].map(_format_yen),
-                "経費率": d["expense_ratio"].map(_format_pct),
+                "返礼率": d["expense_ratio"].map(_format_pct),
             }
         )
         story.append(

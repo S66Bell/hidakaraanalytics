@@ -66,7 +66,7 @@ def _kpi_row(label: str, kpi: Kpi, current_for_comparison: Kpi | None = None) ->
         )
     with cols[3]:
         st.metric(
-            "経費率",
+            "返礼率",
             _format_pct(kpi.expense_ratio),
             delta=_delta_vs_current_label(
                 kpi.expense_ratio, cmp_.expense_ratio if cmp_ else None, is_pct=True
@@ -219,7 +219,7 @@ def render(conn: duckdb.DuckDBPyConnection, municipality_ids: list[int] | None =
                 "orders": "件数",
                 "revenue": "寄付金額",
                 "total_cost": "謝礼品価格",
-                "expense_ratio": "経費率",
+                "expense_ratio": "返礼率",
                 "avg_order_value": "平均単価",
             }
         )
@@ -227,5 +227,5 @@ def render(conn: duckdb.DuckDBPyConnection, municipality_ids: list[int] | None =
         display["謝礼品価格"] = display["謝礼品価格"].map(_format_yen)
         display["件数"] = display["件数"].map(_format_count)
         display["平均単価"] = display["平均単価"].map(format_yen_round)
-        display["経費率"] = display["経費率"].map(_format_pct)
+        display["返礼率"] = display["返礼率"].map(_format_pct)
         st.dataframe(display.iloc[::-1], use_container_width=True, hide_index=True)

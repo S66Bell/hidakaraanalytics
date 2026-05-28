@@ -102,11 +102,11 @@ def _vendor_ranking_section(conn, start: date, end: date, municipality_ids: list
     cols[0].metric("該当事業者数", f"{len(df):,}")
     cols[1].metric("合計 寄付金額", format_yen(total_rev))
     cols[2].metric("合計 謝礼品価格", format_yen(total_cost))
-    cols[3].metric("平均 経費率", format_pct(total_expense_ratio))
+    cols[3].metric("平均 返礼率", format_pct(total_expense_ratio))
 
     sort_label = st.radio(
         "並び順",
-        options=["寄付金額", "謝礼品価格", "経費率", "件数"],
+        options=["寄付金額", "謝礼品価格", "返礼率", "件数"],
         horizontal=True,
         index=0,
         key="vendor_sort",
@@ -114,7 +114,7 @@ def _vendor_ranking_section(conn, start: date, end: date, municipality_ids: list
     sort_map = {
         "寄付金額": ("revenue", False),
         "謝礼品価格": ("total_cost", False),
-        "経費率": ("expense_ratio", False),
+        "返礼率": ("expense_ratio", False),
         "件数": ("orders", False),
     }
     sort_col, asc = sort_map[sort_label]
@@ -131,7 +131,7 @@ def _vendor_ranking_section(conn, start: date, end: date, municipality_ids: list
                 "product_count": "取扱商品数",
                 "revenue": "寄付金額",
                 "total_cost": "謝礼品価格",
-                "expense_ratio": "経費率",
+                "expense_ratio": "返礼率",
                 "avg_order_value": "平均単価",
             }
         )
@@ -139,7 +139,7 @@ def _vendor_ranking_section(conn, start: date, end: date, municipality_ids: list
         d["謝礼品価格"] = d["謝礼品価格"].map(format_yen)
         d["件数"] = d["件数"].map(format_count)
         d["取扱商品数"] = d["取扱商品数"].map(format_int)
-        d["経費率"] = d["経費率"].map(format_pct)
+        d["返礼率"] = d["返礼率"].map(format_pct)
         d["平均単価"] = d["平均単価"].map(format_yen_round)
         st.dataframe(d, use_container_width=True, hide_index=True)
 
@@ -163,7 +163,7 @@ def _vendor_detail_section(conn, start: date, end: date, municipality_ids: list[
     cols[0].metric("寄付金額", format_yen(kpi.revenue))
     cols[1].metric("件数", format_count(kpi.orders))
     cols[2].metric("謝礼品価格", format_yen(kpi.total_cost))
-    cols[3].metric("経費率", format_pct(kpi.expense_ratio))
+    cols[3].metric("返礼率", format_pct(kpi.expense_ratio))
     cols[4].metric("取扱商品数", f"{detail['product_count']:,}")
 
     if not detail["monthly"].empty and len(detail["monthly"]) > 1:
@@ -211,13 +211,13 @@ def _vendor_detail_section(conn, start: date, end: date, municipality_ids: list[
                 "orders": "件数",
                 "revenue": "寄付金額",
                 "total_cost": "謝礼品価格",
-                "expense_ratio": "経費率",
+                "expense_ratio": "返礼率",
             }
         )
         p["寄付金額"] = p["寄付金額"].map(format_yen)
         p["謝礼品価格"] = p["謝礼品価格"].map(format_yen)
         p["件数"] = p["件数"].map(format_count)
-        p["経費率"] = p["経費率"].map(format_pct)
+        p["返礼率"] = p["返礼率"].map(format_pct)
         st.dataframe(p, use_container_width=True, hide_index=True)
 
     st.markdown("---")

@@ -191,14 +191,14 @@ def render(conn: duckdb.DuckDBPyConnection, municipality_ids: list[int] | None =
                 "orders": "件数",
                 "revenue": "寄付金額",
                 "total_cost": "謝礼品価格",
-                "expense_ratio": "経費率",
+                "expense_ratio": "返礼率",
                 "share": "寄付金額シェア",
             }
         )
         d["寄付金額"] = d["寄付金額"].map(format_yen)
         d["謝礼品価格"] = d["謝礼品価格"].map(format_yen)
         d["件数"] = d["件数"].map(format_count)
-        d["経費率"] = d["経費率"].map(format_pct)
+        d["返礼率"] = d["返礼率"].map(format_pct)
         d["寄付金額シェア"] = d["寄付金額シェア"].map(format_pct)
         st.dataframe(d, use_container_width=True, hide_index=True)
 

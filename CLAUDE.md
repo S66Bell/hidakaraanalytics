@@ -167,17 +167,21 @@ import_logs         id(PK), municipality_id, file_name, file_type, rows_inserted
 
 ---
 
-## 登録済み自治体（2026-05-26 時点）
+## 登録済み自治体（2026-05-29 時点）
 
 | id | 名前 | code | 配送件数 | 寄附件数 | 配送 fmt | 寄附 fmt |
 |---|---|---|---|---|---|---|
 | 1 | 本巣市 | motosu | 98,415 | 72,931 | format_a | standard |
 | 2 | 白川村 | shirakawa | 68,057 | 49,270 | format_b | standard |
 | 3 | 飛騨市 | hida | 73,060 | 54,735 | format_c | no_product |
+| 4 | 高山市 | takayama | 318,949 | 241,868 | format_a | standard |
+| 5 | 郡上市 | gujo | 32,748 | 29,910 | format_a | standard |
+| 6 | 大垣市 | ogaki | 79,428 | 62,135 | format_a | standard |
 
-合計: 配送 239,532 件 / 寄附 176,936 件
+合計: 配送 670,657 件 / 寄附 510,849 件
 
-残り 5 自治体は順次追加予定。新フォーマットが出てきたら ingest.py に追加する。
+残り 2 自治体は順次追加予定。新フォーマットが出てきたら ingest.py に追加する。
+（大垣市は 2026-05-29 に追加。配送=format_a / 寄附=standard で本巣市と同形式。件数はドライラン検証値で、社内PCでの取込後に確定）
 
 ---
 

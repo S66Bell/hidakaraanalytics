@@ -58,3 +58,15 @@ def format_yen_round(value) -> str:
     except Exception:
         pass
     return f"¥{int(round(float(value))):,}"
+
+
+def format_yoy(value) -> str:
+    """Signed year-over-year ratio. 0.123 -> '+12.3%', -0.05 -> '-5.0%', None/NaN -> '—'."""
+    if value is None:
+        return "—"
+    try:
+        if isinstance(value, float) and math.isnan(value):
+            return "—"
+    except Exception:
+        pass
+    return f"{float(value) * 100:+.1f}%"

@@ -10,7 +10,6 @@ import streamlit as st
 
 from src.analytics import (
     Kpi,
-    KpiComparison,
     get_data_date_range,
     get_monthly_kpi_set,
     get_recent_monthly_trend,
@@ -23,54 +22,44 @@ _format_count = format_count
 _format_pct = format_pct
 
 
-def _delta_vs_current_label(
-    period_val: float | int, current_val: float | int | None, *, is_pct: bool = False
-) -> str | None:
-    """Returns a delta string showing how the current month differs from this row's period.
-
-    Streamlit's st.metric reads the leading +/- to color the arrow, so the
-    string starts with the signed number.
-    """
-    if current_val is None or period_val is None or period_val == 0:
+def _yoy_label(current_val: float | int, prev_val: float | int | None) -> str | None:
+    """前年比（増減率）。st.metric は先頭の +/- で矢印色を決めるので符号付きで返す。"""
+    if prev_val is None or current_val is None or prev_val == 0:
         return None
-    if is_pct:
-        diff_pt = (current_val - period_val) * 100
-        return f"{diff_pt:+.1f}pt （当月との差）"
-    rate = (current_val - period_val) / period_val * 100
-    return f"{rate:+.1f}% （当月比）"
+    rate = (current_val - prev_val) / prev_val * 100
+    return f"{rate:+.1f}% （前年比）"
 
 
-def _kpi_row(label: str, kpi: Kpi, current_for_comparison: Kpi | None = None) -> None:
-    """Render a KPI row. `kpi` is this row's period; if `current_for_comparison`
-    is provided, each metric also shows how the current month differs."""
-    st.markdown(f"##### {label}")
-    cols = st.columns(4)
-    cmp_ = current_for_comparison
+def _yoy_pt_label(current_ratio: float | None, prev_ratio: float | None) -> str | None:
+    """返礼率のような比率指標の前年比は差分（ポイント）で示す。"""
+    if prev_ratio is None or current_ratio is None:
+        return None
+    diff_pt = (current_ratio - prev_ratio) * 100
+    return f"{diff_pt:+.1f}pt （前年比）"
+
+
+def _current_kpi_row(current: Kpi, prev_year: Kpi | None) -> None:
+    """当月の KPI（寄付金額・件数・返礼率）を表示し、各カードに前年比を出す。"""
+    has_prev = prev_year is not None and prev_year.revenue > 0
+    cols = st.columns(3)
     with cols[0]:
         st.metric(
             "寄付金額",
-            _format_yen(kpi.revenue),
-            delta=_delta_vs_current_label(kpi.revenue, cmp_.revenue if cmp_ else None),
+            _format_yen(current.revenue),
+            delta=_yoy_label(current.revenue, prev_year.revenue) if has_prev else None,
         )
     with cols[1]:
         st.metric(
             "件数",
-            _format_count(kpi.orders),
-            delta=_delta_vs_current_label(kpi.orders, cmp_.orders if cmp_ else None),
+            _format_count(current.orders),
+            delta=_yoy_label(current.orders, prev_year.orders) if has_prev else None,
         )
     with cols[2]:
         st.metric(
-            "謝礼品価格",
-            _format_yen(kpi.total_cost),
-            delta=_delta_vs_current_label(kpi.total_cost, cmp_.total_cost if cmp_ else None),
-        )
-    with cols[3]:
-        st.metric(
             "返礼率",
-            _format_pct(kpi.expense_ratio),
-            delta=_delta_vs_current_label(
-                kpi.expense_ratio, cmp_.expense_ratio if cmp_ else None, is_pct=True
-            ),
+            _format_pct(current.expense_ratio),
+            delta=_yoy_pt_label(current.expense_ratio, prev_year.expense_ratio) if has_prev else None,
+            delta_color="off",
         )
 
 
@@ -181,26 +170,14 @@ def render(conn: duckdb.DuckDBPyConnection, municipality_ids: list[int] | None =
             )
 
     st.markdown("---")
-    # Row 1: current month actuals (no comparison delta)
-    _kpi_row(kpis["current"].label + "（当月）", current_kpi, None)
-
-    # Row 2: previous month's actuals; delta = how the current month compares
-    prev_month_kpi = kpis["vs_prev_month"].previous
-    st.markdown("&nbsp;", unsafe_allow_html=True)
-    if prev_month_kpi is not None and prev_month_kpi.revenue > 0:
-        _kpi_row(kpis["vs_prev_month"].label, prev_month_kpi, current_kpi)
-    else:
-        st.markdown(f"##### {kpis['vs_prev_month'].label}")
-        st.info("該当月のデータがありません。")
-
-    # Row 3: previous year same month's actuals; delta = how current compares
+    # 当月の KPI を表示し、各カードに前年同月比を出す
     prev_year_kpi = kpis["vs_prev_year"].previous
-    st.markdown("&nbsp;", unsafe_allow_html=True)
+    st.markdown(f"##### {kpis['current'].label}（当月）")
+    _current_kpi_row(current_kpi, prev_year_kpi)
     if prev_year_kpi is not None and prev_year_kpi.revenue > 0:
-        _kpi_row(kpis["vs_prev_year"].label, prev_year_kpi, current_kpi)
+        st.caption(f"増減は {kpis['vs_prev_year'].label} との比較")
     else:
-        st.markdown(f"##### {kpis['vs_prev_year'].label}")
-        st.info("該当月のデータがありません。")
+        st.caption("前年同月のデータがないため前年比は表示していません。")
 
     st.markdown("---")
     st.markdown("##### 月次推移（直近24ヶ月）")

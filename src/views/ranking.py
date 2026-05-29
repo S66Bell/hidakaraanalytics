@@ -14,8 +14,9 @@ from src.analytics import (
     get_data_date_range,
     get_product_ranking,
     list_categories,
+    shift_one_year,
 )
-from src.format_utils import format_count, format_int, format_pct, format_yen, format_yen_round
+from src.format_utils import format_count, format_int, format_pct, format_yen, format_yen_round, format_yoy
 
 
 ORDER_BY_OPTIONS = {
@@ -140,6 +141,14 @@ def render(conn: duckdb.DuckDBPyConnection, municipality_ids: list[int] | None =
         st.info("指定期間内にデータがありません。")
         return
 
+    # 前年比（選択期間を1年前にシフトして比較）
+    prev_cat = get_category_ranking(
+        conn, shift_one_year(start), shift_one_year(end), municipality_ids
+    )
+    prev_rev = dict(zip(prev_cat["category"], prev_cat["revenue"])) if not prev_cat.empty else {}
+    cat_df["revenue_prev"] = cat_df["category"].map(prev_rev)
+    cat_df["yoy"] = (cat_df["revenue"] - cat_df["revenue_prev"]) / cat_df["revenue_prev"]
+
     chart_col1, chart_col2 = st.columns(2)
     with chart_col1:
         st.plotly_chart(_category_pie(cat_df), use_container_width=True)
@@ -148,22 +157,21 @@ def render(conn: duckdb.DuckDBPyConnection, municipality_ids: list[int] | None =
 
     with st.expander("📋 カテゴリ別データを表で確認"):
         d = cat_df.copy()
-        d = d.rename(
-            columns={
-                "category": "カテゴリ",
-                "orders": "件数",
-                "revenue": "寄付金額",
-                "total_cost": "謝礼品価格",
-                "expense_ratio": "経費率",
-                "share": "寄付金額シェア",
-            }
+        d["寄付金額"] = d["revenue"].map(format_yen)
+        d["前年比"] = d["yoy"].map(format_yoy)
+        d["謝礼品価格"] = d["total_cost"].map(format_yen)
+        d["件数"] = d["orders"].map(format_count)
+        d["返礼率"] = d["expense_ratio"].map(format_pct)
+        d["寄付金額シェア"] = d["share"].map(format_pct)
+        d = d.rename(columns={"category": "カテゴリ"})
+        st.dataframe(
+            d[["カテゴリ", "件数", "寄付金額", "前年比", "謝礼品価格", "返礼率", "寄付金額シェア"]],
+            use_container_width=True,
+            hide_index=True,
         )
-        d["寄付金額"] = d["寄付金額"].map(format_yen)
-        d["謝礼品価格"] = d["謝礼品価格"].map(format_yen)
-        d["件数"] = d["件数"].map(format_count)
-        d["経費率"] = d["経費率"].map(format_pct)
-        d["寄付金額シェア"] = d["寄付金額シェア"].map(format_pct)
-        st.dataframe(d, use_container_width=True, hide_index=True)
+        st.caption(
+            f"前年比 = {start.year-1}/{start.month:02d}〜{end.year-1}/{end.month:02d} の寄付金額との増減率"
+        )
 
     # === Product section ===
     st.markdown("---")
@@ -208,13 +216,13 @@ def render(conn: duckdb.DuckDBPyConnection, municipality_ids: list[int] | None =
                 "orders": "件数",
                 "revenue": "寄付金額",
                 "total_cost": "謝礼品価格",
-                "expense_ratio": "経費率",
+                "expense_ratio": "返礼率",
                 "avg_donation": "平均寄附額",
             }
         )
         d["寄付金額"] = d["寄付金額"].map(format_yen)
         d["謝礼品価格"] = d["謝礼品価格"].map(format_yen)
         d["件数"] = d["件数"].map(format_count)
-        d["経費率"] = d["経費率"].map(format_pct)
+        d["返礼率"] = d["返礼率"].map(format_pct)
         d["平均寄附額"] = d["平均寄附額"].map(format_yen_round)
         st.dataframe(d, use_container_width=True, hide_index=True)

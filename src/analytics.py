@@ -5,7 +5,7 @@
   1行=1寄附 なので、定期便のような 1寄附→N配送 の場合でも件数・金額が過大に
   ならない。
 - **謝礼品価格** は `shipments` テーブルにしか存在しないのでこちらから集計。
-- **経費率** は 謝礼品価格(shipments) / 寄付金額(donations)。
+- **返礼率** は 謝礼品価格(shipments) / 寄付金額(donations)。
 - カテゴリ / 事業者 / 商品コード による分解は `shipments` を使う（これらの属性は
   shipments にしか無い）。
 """
@@ -174,6 +174,14 @@ def _month_bounds(year: int, month: int) -> tuple[date, date]:
     else:
         end = date(year, month + 1, 1)
     return start, end
+
+
+def shift_one_year(d: date) -> date:
+    """Same calendar date one year earlier (Feb 29 -> Feb 28)."""
+    try:
+        return d.replace(year=d.year - 1)
+    except ValueError:
+        return d.replace(year=d.year - 1, day=28)
 
 
 def get_monthly_kpi_set(
@@ -634,6 +642,49 @@ def get_channel_category_cross(
             COUNT(*)                                AS orders
         FROM shipments
         {where}
+        GROUP BY 1, 2
+        """,
+        params,
+    ).fetchdf()
+    return df
+
+
+def get_channel_vendor_cross(
+    conn: duckdb.DuckDBPyConnection,
+    start: date | None = None,
+    end: date | None = None,
+    municipality_ids: list[int] | None = None,
+) -> pd.DataFrame:
+    """channel × vendor (alias-resolved) cross aggregate."""
+    clauses = []
+    params: list = []
+    if start is not None:
+        clauses.append("s.payment_date >= ?")
+        params.append(start)
+    if end is not None:
+        clauses.append("s.payment_date <= ?")
+        params.append(end)
+    if municipality_ids:
+        placeholders = ",".join(["?"] * len(municipality_ids))
+        clauses.append(f"s.municipality_id IN ({placeholders})")
+        params.extend(municipality_ids)
+    where = " WHERE " + " AND ".join(clauses) if clauses else ""
+    df = conn.execute(
+        f"""
+        WITH resolved AS (
+            SELECT
+                COALESCE(s.channel, '(不明)')        AS channel,
+                COALESCE({VENDOR_RESOLVE}, '(不明)') AS vendor,
+                s.donation_amount
+            FROM shipments s
+            {where}
+        )
+        SELECT
+            channel,
+            vendor,
+            COALESCE(SUM(donation_amount), 0)        AS revenue,
+            COUNT(*)                                 AS orders
+        FROM resolved
         GROUP BY 1, 2
         """,
         params,

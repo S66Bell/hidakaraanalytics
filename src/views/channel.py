@@ -13,6 +13,7 @@ from src.analytics import (
     get_channel_breakdown,
     get_channel_category_cross,
     get_channel_monthly_trend,
+    get_channel_vendor_cross,
     get_data_date_range,
 )
 from src.format_utils import format_count, format_pct, format_yen
@@ -144,6 +145,28 @@ def _channel_category_heatmap(df: pd.DataFrame) -> go.Figure:
     return fig
 
 
+def _channel_vendor_heatmap(df: pd.DataFrame, top_n: int = 20) -> go.Figure:
+    pivot = df.pivot_table(index="vendor", columns="channel", values="revenue", aggfunc="sum", fill_value=0)
+    pivot = pivot.loc[pivot.sum(axis=1).sort_values(ascending=False).index].head(top_n)
+    fig = go.Figure(
+        data=go.Heatmap(
+            z=pivot.values,
+            x=pivot.columns,
+            y=pivot.index,
+            colorscale="Greens",
+            hovertemplate="チャネル: %{x}<br>事業者: %{y}<br>寄付金額: ¥%{z:,}<extra></extra>",
+            colorbar=dict(title="寄付金額（円）"),
+        )
+    )
+    fig.update_layout(
+        height=max(420, 22 * len(pivot)),
+        margin=dict(l=10, r=10, t=10, b=10),
+        xaxis=dict(title=None),
+        yaxis=dict(title=None, autorange="reversed"),
+    )
+    return fig
+
+
 def render(conn: duckdb.DuckDBPyConnection, municipality_ids: list[int] | None = None) -> None:
     st.subheader("🛒 チャネル別 分析")
 
@@ -191,14 +214,14 @@ def render(conn: duckdb.DuckDBPyConnection, municipality_ids: list[int] | None =
                 "orders": "件数",
                 "revenue": "寄付金額",
                 "total_cost": "謝礼品価格",
-                "expense_ratio": "経費率",
+                "expense_ratio": "返礼率",
                 "share": "寄付金額シェア",
             }
         )
         d["寄付金額"] = d["寄付金額"].map(format_yen)
         d["謝礼品価格"] = d["謝礼品価格"].map(format_yen)
         d["件数"] = d["件数"].map(format_count)
-        d["経費率"] = d["経費率"].map(format_pct)
+        d["返礼率"] = d["返礼率"].map(format_pct)
         d["寄付金額シェア"] = d["寄付金額シェア"].map(format_pct)
         st.dataframe(d, use_container_width=True, hide_index=True)
 
@@ -237,4 +260,23 @@ def render(conn: duckdb.DuckDBPyConnection, municipality_ids: list[int] | None =
             pivot["合計"] = pivot.sum(axis=1)
             pivot = pivot.map(lambda v: format_yen(int(v)))
             pivot.index.name = "カテゴリ"
+            st.dataframe(pivot, use_container_width=True)
+
+    # === Channel × Vendor cross analysis ===
+    st.markdown("---")
+    st.markdown("##### 🔀 チャネル × 事業者 クロス分析")
+
+    cross_v = get_channel_vendor_cross(conn, start, end, municipality_ids)
+    if cross_v.empty:
+        st.info("クロス分析用のデータがありません。")
+    else:
+        st.caption("寄付金額 上位20事業者を表示")
+        st.plotly_chart(_channel_vendor_heatmap(cross_v, top_n=20), use_container_width=True)
+        with st.expander("📋 クロス集計表（上位20事業者）"):
+            pivot = cross_v.pivot_table(index="vendor", columns="channel", values="revenue", aggfunc="sum", fill_value=0)
+            pivot = pivot.loc[pivot.sum(axis=1).sort_values(ascending=False).index].head(20)
+            pivot["合計"] = pivot.sum(axis=1)
+            pivot.loc["合計"] = pivot.sum()
+            pivot = pivot.map(lambda v: format_yen(int(v)))
+            pivot.index.name = "事業者"
             st.dataframe(pivot, use_container_width=True)

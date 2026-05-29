@@ -22,7 +22,7 @@ METRIC_OPTIONS = {
     "寄付金額": "revenue",
     "件数": "orders",
     "謝礼品価格": "total_cost",
-    "経費率": "expense_ratio",
+    "返礼率": "expense_ratio",
     "平均単価": "avg_order_value",
 }
 
@@ -41,7 +41,7 @@ def _build_chart(df: pd.DataFrame, metric_key: str, granularity: str) -> go.Figu
     if is_pct:
         y_vals = df[metric_key] * 100
         hover_y = "%{y:.2f}%"
-        y_title = "経費率（%）"
+        y_title = "返礼率（%）"
     elif is_money:
         y_vals = df[metric_key]
         hover_y = "¥%{y:,.0f}"
@@ -164,7 +164,7 @@ def render(conn: duckdb.DuckDBPyConnection, municipality_ids: list[int] | None =
     cols[0].metric("期間合計 寄付金額", _format_yen(total_revenue))
     cols[1].metric("期間合計 件数", f"{total_orders:,} 件")
     cols[2].metric("期間合計 謝礼品価格", _format_yen(total_cost))
-    cols[3].metric("期間 経費率", _format_pct(expense_ratio))
+    cols[3].metric("期間 返礼率", _format_pct(expense_ratio))
 
     st.markdown(f"##### {metric_label} の推移")
     st.plotly_chart(_build_chart(df, metric_key, granularity), use_container_width=True)
@@ -182,14 +182,14 @@ def render(conn: duckdb.DuckDBPyConnection, municipality_ids: list[int] | None =
                 "orders": "件数",
                 "revenue": "寄付金額",
                 "total_cost": "謝礼品価格",
-                "expense_ratio": "経費率",
+                "expense_ratio": "返礼率",
                 "avg_order_value": "平均単価",
             }
         )
         display["寄付金額"] = display["寄付金額"].map(_format_yen)
         display["謝礼品価格"] = display["謝礼品価格"].map(_format_yen)
         display["平均単価"] = display["平均単価"].map(format_yen_round)
-        display["経費率"] = display["経費率"].map(_format_pct)
+        display["返礼率"] = display["返礼率"].map(_format_pct)
         display["件数"] = display["件数"].map(format_int)
         st.dataframe(display.iloc[::-1], use_container_width=True, hide_index=True)
 

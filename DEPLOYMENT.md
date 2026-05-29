@@ -88,7 +88,7 @@ python --version
 転送した `HIDAKARAanalytics_YYYYMMDD_HHMM.zip` を **以下の場所に展開** します:
 
 ```
-C:\HIDAKARAanalytics\
+C:\Users\info\HIDAKARAanalytics_v2\
 ```
 
 （フォルダ名はお好みでも OK、ただし以降の手順は上記前提で書きます）
@@ -96,7 +96,7 @@ C:\HIDAKARAanalytics\
 展開後、こんな構成になっているか確認:
 
 ```
-C:\HIDAKARAanalytics\
+C:\Users\info\HIDAKARAanalytics_v2\
 ├── app.py
 ├── requirements.txt
 ├── start_server.ps1
@@ -116,7 +116,7 @@ C:\HIDAKARAanalytics\
 PowerShell でこのフォルダに移動して:
 
 ```powershell
-cd C:\HIDAKARAanalytics
+cd C:\Users\info\HIDAKARAanalytics_v2
 python -m venv .venv
 ```
 
@@ -225,7 +225,7 @@ shell:startup
 
 ### 6-2. ショートカットを作成
 
-`C:\HIDAKARAanalytics\start_server.bat` を **右クリックドラッグ** で スタートアップフォルダに持っていき → **「ショートカットをここに作成」** を選ぶ
+`C:\Users\info\HIDAKARAanalytics_v2\start_server.bat` を **右クリックドラッグ** で スタートアップフォルダに持っていき → **「ショートカットをここに作成」** を選ぶ
 
 → ログイン時に自動でサーバーが起動するようになる
 
@@ -270,7 +270,7 @@ http://<サーバー PC IP>:8501
 
 ### バックアップ（推奨：週1）
 
-`C:\HIDAKARAanalytics\data\warehouse.duckdb` を別の場所にコピー保管:
+`C:\Users\info\HIDAKARAanalytics_v2\data\warehouse.duckdb` を別の場所にコピー保管:
 - USB メモリ
 - ネットワーク共有フォルダ
 - OneDrive
@@ -298,7 +298,7 @@ http://<サーバー PC IP>:8501
 **A.** Streamlit が動作中だと DB ファイルロックで失敗します。Phase 1-1 のコマンドで停止してから再試行。
 
 ### Q. データを完全に消して再取込したい
-**A.** `C:\HIDAKARAanalytics\data\warehouse.duckdb` を削除して `start_server.bat` を再起動。空の DB が再生成される。自治体マスタも消えるので、設定タブから自治体追加 → 取込 と進める。
+**A.** `C:\Users\info\HIDAKARAanalytics_v2\data\warehouse.duckdb` を削除して `start_server.bat` を再起動。空の DB が再生成される。自治体マスタも消えるので、設定タブから自治体追加 → 取込 と進める。
 
 ---
 

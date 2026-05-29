@@ -20,6 +20,7 @@ from src.ingest import (
 )
 from src.views import channel as view_channel
 from src.views import comparison as view_comparison
+from src.views import municipality as view_municipality
 from src.views import ranking as view_ranking
 from src.views import settings as view_settings
 from src.views import summary as view_summary
@@ -149,6 +150,7 @@ def render_main(selected_ids: list[int] | None) -> None:
             "🏆 商品ランキング",
             "🏭 事業者別",
             "🛒 チャネル別",
+            "🏙️ 自治体詳細",
             "🏛️ 自治体比較",
             "⚙️ 設定",
             "📜 取込履歴",
@@ -166,10 +168,12 @@ def render_main(selected_ids: list[int] | None) -> None:
     with tabs[4]:
         view_channel.render(conn, selected_ids)
     with tabs[5]:
-        view_comparison.render(conn, selected_ids)
+        view_municipality.render(conn, selected_ids)
     with tabs[6]:
-        view_settings.render(conn)
+        view_comparison.render(conn, selected_ids)
     with tabs[7]:
+        view_settings.render(conn)
+    with tabs[8]:
         _render_import_history(conn)
 
 
